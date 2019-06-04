@@ -8,7 +8,7 @@ apprenticeship: false
 tags: computing, streams, elixir, java, c#
 ---
 
-Streams have always been a complicated topic, but with a little help from some snippets, hopefully we can make
+Streams have always been a complicated topic, but with a little help from some examples, hopefully we can make
 it right today.
 
 Streams are, in essence, a sequence of data elements which are available over time. Just like an actual stream
@@ -20,16 +20,16 @@ Like just pointed, one of the main reasons to use streams is because sometimes, 
 available**. For example, if you're listening to a weather streaming API, the current temperature is
 calculated in the current moment, so (1) the data is infinite as long as you continue listening to the service,
 and (2) new data is available each minute, as it's produced. This can't be modeled with a finite amount of data,
-so that's when we decide to model it with a infinite stream of data.
+so that's when we decide to model it with an infinite stream of data.
 
 Since the size of a stream is undefined, they are potentially unlimited, it's important to remember that we can't
 operate on them as a whole, like we're used to when working with lists or arrays. This way, functions which are
 applied to streams usually return another stream with the data modified. These are called *filters*, and when
 chained, they form pipelines.
 
-Another of the benefits mentioned was **performance**. When having to process very big amounts of data, this can
+Another benefit mentioned was **performance**. When processing very big amounts of data, this can
 usually end up in a very big memory hit to our computer. If you try to read a 20Gb file with data about cats,
-process it and then send to a friend, that would mean that apart from whatever amount of memory our application
+process it and then send it to a friend, that would mean that apart from whatever amount of memory our application
 uses, we're going to load an extra 20Gb to memory. Most laptops would die! But that doesn't mean it isn't doable.
 If instead of reading the file as a whole we model it as a stream of data, we can read one line at a time,
 process those lines and send them, also as a stream. This would make our application just use an extra few bytes
@@ -103,8 +103,8 @@ buffer, a buffer to which we can write and one from where we can read from.
 
 ## I/O on a File, in C#
 
-Moving to a more practical example, we're going to check out how to work with files with streams. When working with
-files, opening and closing the streams starts to take much more importance, but we'll talk about that later.
+Moving to a more practical example, we're going to check out how to work with files in streams. When working with
+files, opening and closing the streams starts to take much more importance, but we'll discuss that later.
 
 In .NET land, in order to create a file, we can make use of the `File.Create` function. This will provide us with a 
 `FileStream` which models our file, so we can write to it. Once we open the stream and write to it, we will have to
@@ -169,7 +169,7 @@ about the opening and closing of streams.
 ### Why do streams have to be opened or closed?
 
 We mentioned that every time we open a stream the OS needs to dedicate resources, but we never talked about which,
-or how. Most of the times, it depends on the nature of the stream which we have opened – it's not the same to open
+or how. Most of the time, it depends on the nature of the stream which we have opened – it's not the same to open
 a socket than to open a file, etc. For the time being, we can concentrate on the files.
 
 Whenever a new file stream is open, the OS dedicates a file descriptor, commonly known as a file handle, to the
@@ -179,11 +179,11 @@ which contains information such as the offset and the access restrictions of the
 
 As you can imagine, file descriptors isn't like memory – if you don't return them to the OS the situation can grow
 ugly fast. It's just a matter of time until the application crashes in a long running application. This is usually
-called a file-handle leak. In Windows computers, one of the consequences is usually when you try to delete a file
-but it says that it's being used by another program. The resource hasn't been freed properly.
+called a file-handle leak. In Windows computers, when you try to delete a file, usually one of the consequences is 
+that it says it's being used by another program. The resource hasn't been freed properly.
 
 Luckily, most languages nowadays provide us with constructs which allow us to free those resources appropiately.
-Like mentioned, we have under our toolbelt statements like `using` in C# or `try` with resources in Java. In Elixir
+Like mentioned, we have statements like `using` in C# or `try` with resources in Java in our toolbox. In Elixir
 though, you have to close it with the `IO.close/1` function.
 
 ## I/O over a socket, in Java
@@ -238,7 +238,7 @@ if you tried executing the program, you will have noticed that it doesn't stop r
 command (Ctrl/Cmd + C). We can continue inputing data for as long as we wont and the stream will continue feeding it.
 In this particular example I have elaborated a specific `bytes[] readAllBytes(InputStream stream)` function which reads
 only the available bytes and returns them, but the `InputStream` class provides us with a `readAllBytes()` method which
-blocks until the stream is closed for then returning all the bytes received.
+blocks until the stream is closed, then returning all the bytes received.
 
 You might be wondering though, *what if I want to read the data of my stream a second time? Is it possible?*. Indeed it's
 possible, but for understanding how, we must introduce one last concept: **seeking**. 
@@ -246,7 +246,7 @@ possible, but for understanding how, we must introduce one last concept: **seeki
 ## Seeking a stream – understanding the side-effects of reading
 
 If you've tried reading a stream a second time, you might have found yourself not being able to read previous data, but
-just reading new. Some streams don't support seeking, but assuming they do, the reason behind this is that streams have
+just reading new data. Some streams don't support seeking, but assuming they do, the reason behind this is that streams have
 a cursor which points to the last byte read. Every time we read a new byte, that cursor is advanced to the new position.
 In order to read already processed bytes we would need to rewind that cursor all the way to the beggining. This is called
 seeking.
@@ -254,24 +254,24 @@ seeking.
 In Java, the way to do this is using the `mark(int)` and `reset()` method of the
 [`InputStream`](https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html) class, in the C# example,
 we would simply set [`file.InputStream.Position = 0`](https://stackoverflow.com/questions/4266448/reading-stream-twice).
-These are the side effects of reading a stream. Usually, before consuming a stream we would be best of knowing if it
-supports seeking, otherwise another solution would be copying our read bytes to another array and maintain a copy.
-Nonetheless, take into account that sometimes one of the purposes of using streams is to go easy on memory consumption,
-and we're copying all the read data in a memory array, then we're anulling this completely.
+These are the side effects of reading a stream. If a stream doesn't support seeking, another solution would be copying
+our read bytes to another array and maintain a copy. Nonetheless, take into account that sometimes one of the purposes of
+using streams is to go easy on memory consumption, and we're copying all the read data in a memory array, then we're
+anulling this completely.
 
 ## Wrapping up
 
-We've covered a lot of things in this paper, but if we were to do a really quick TLDR and summarize some of the key points,
+We've covered a lot of things, but if we were to do a really quick TLDR and summarize some of the key points,
 I would just go with:
 
-1. Streams manage undefined amounts of date – sometimes infinite.
-2. Streams enable applications for a huge performance boost since they don't have to load all the data in memory
+1. Streams manage undefined amounts of data – sometimes infinite.
+2. Streams enable a huge performance boost for applications since they don't have to load all the data in memory
 before processing it.
-3. Just like streams have to be opened, they must be closed, otherwise the OS' resources aren't freed and that can
+3. Just as streams have to be opened, they must be closed, otherwise the OS' resources aren't freed and that can
 potentially be a very expensive cost, be it sockets or file handles.
-4. Some languages provide constructs to handle the dispose of resources, like `using` in C# or `try` in Java.
+4. Some languages provide constructs to handle the disposal of resources, like `using` in C# or `try` in Java.
 5. Streams have a cursor which points to the last read byte. In some cases, we can rewind that cursor in order to read
-a second time the same data. This is called seeking.
+the same data a second time. This is called seeking.
 
 Following up, in case you want to delve a little more into sockets, as a concept, feel free to check out this other
 post I have about them: [URL](https://manzanit0.github.io/networks/2018/11/09/sockets-explained.html).
